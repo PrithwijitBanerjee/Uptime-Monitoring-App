@@ -8,15 +8,15 @@
 // Dependencies
 const http = require('node:http');
 const handler = require('./helpers/handleReqRes');
+const enviroments = require('./helpers/enviroments');
+const { update } = require('./model/updateFileData');
 
 // App object -- module scaffolding
 const app = {};
 
-// app config 
-app.config = {
-    PORT: process.env.PORT || 5000,
-    hostName: '127.0.0.1',
-};
+update('demo', 'Test', { name: 'Jane Doe', age: 28, address: 'London(UK)' }, (error) => {
+    console.log(error);
+})
 
 // Node JS server 
 app.createServer = () => {
@@ -28,8 +28,8 @@ app.createServer = () => {
     })
 
     // server is listening at given port ....
-    server.listen(app.config.PORT, app.config.hostName, () => {
-        console.log(`Server is successfully running at: http://${app.config.hostName}:${app.config.PORT}`);
+    server.listen(enviroments.PORT, enviroments.hostName, () => {
+        console.log(`Server is successfully running at: http://${enviroments.hostName}:${enviroments.PORT}`);
     });
 }
 
@@ -37,7 +37,5 @@ app.createServer = () => {
 app.handleReqRes = handler.handleReqRes;
 
 
-
 // Invoking the server ...
-
 app.createServer();

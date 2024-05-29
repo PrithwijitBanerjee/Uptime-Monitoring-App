@@ -32,15 +32,15 @@ handler.handleReqRes = (req, res) => {
         headersObj
     };
     const choosedPath = allRoutes[trimmedPath] ? allRoutes[trimmedPath] : notFoundHnadler;
-    choosedPath(requestedProperties, (statusCode, payload) => {
-        statusCode = typeof(statusCode) === 'number' ? statusCode : 500;
-        payload = typeof(payload) === 'object' ? payload : {};
-        const payloadStr = JSON.stringify(payload);
+    // choosedPath(requestedProperties, (statusCode, payload) => {
+    //     statusCode = typeof(statusCode) === 'number' ? statusCode : 500;
+    //     payload = typeof(payload) === 'object' ? payload : {};
+    //     const payloadStr = JSON.stringify(payload);
 
-        // returning the final response to the client ...
-        res.writeHead(statusCode, {'Content-Type': 'application/json'});
-        res.write(payloadStr);
-    })
+    //     // returning the final response to the client ...
+    //     res.writeHead(statusCode, {'Content-Type': 'application/json'});
+    //     res.write(payloadStr);
+    // });
     const decoder = new StringDecoder('utf-8');
     let realData = "";
     req.on('data', buffer => {
@@ -49,6 +49,15 @@ handler.handleReqRes = (req, res) => {
 
     req.on('end', () => {
         realData += decoder.end();
+        choosedPath(requestedProperties, (statusCode, payload) => {
+            statusCode = typeof (statusCode) === 'number' ? statusCode : 500;
+            payload = typeof (payload) === 'object' ? payload : {};
+            const payloadStr = JSON.stringify(payload);
+
+            // returning the final response to the client ...
+            res.writeHead(statusCode, { 'Content-Type': 'application/json' });
+            res.write(payloadStr);
+        });
         //handle res ...
         res.end(realData);
     });
