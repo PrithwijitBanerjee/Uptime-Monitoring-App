@@ -9,14 +9,11 @@
 const http = require('node:http');
 const handler = require('./helpers/handleReqRes');
 const enviroments = require('./helpers/enviroments');
-const { update } = require('./model/updateFileData');
+
 
 // App object -- module scaffolding
 const app = {};
 
-update('demo', 'Test', { name: 'Jane Doe', age: 28, address: 'London(UK)' }, (error) => {
-    console.log(error);
-})
 
 // Node JS server 
 app.createServer = () => {

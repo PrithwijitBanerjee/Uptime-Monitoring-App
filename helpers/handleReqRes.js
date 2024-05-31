@@ -9,8 +9,8 @@
 const url = require('node:url');
 const { StringDecoder } = require('node:string_decoder');
 const { allRoutes } = require('../routes');
-const { notFoundHnadler } = require('../handlers/routeHandlers/notFoundHandler');
-
+const { notFoundHandler } = require('../handlers/routeHandlers/notFoundHandler');
+const { parseJSON } = require("./utilities");
 // Handler object -- module scaffolding 
 
 const handler = {};
@@ -31,7 +31,7 @@ handler.handleReqRes = (req, res) => {
         method,
         headersObj
     };
-    const choosedPath = allRoutes[trimmedPath] ? allRoutes[trimmedPath] : notFoundHnadler;
+    const choosedPathHandler = allRoutes[trimmedPath] ? allRoutes[trimmedPath] : notFoundHandler;
     // choosedPath(requestedProperties, (statusCode, payload) => {
     //     statusCode = typeof(statusCode) === 'number' ? statusCode : 500;
     //     payload = typeof(payload) === 'object' ? payload : {};
@@ -49,7 +49,8 @@ handler.handleReqRes = (req, res) => {
 
     req.on('end', () => {
         realData += decoder.end();
-        choosedPath(requestedProperties, (statusCode, payload) => {
+        requestedProperties['body'] = parseJSON(realData);
+        choosedPathHandler(requestedProperties, (statusCode, payload) => {
             statusCode = typeof (statusCode) === 'number' ? statusCode : 500;
             payload = typeof (payload) === 'object' ? payload : {};
             const payloadStr = JSON.stringify(payload);
@@ -57,9 +58,8 @@ handler.handleReqRes = (req, res) => {
             // returning the final response to the client ...
             res.writeHead(statusCode, { 'Content-Type': 'application/json' });
             res.write(payloadStr);
+            res.end();
         });
-        //handle res ...
-        res.end(realData);
     });
 }
 

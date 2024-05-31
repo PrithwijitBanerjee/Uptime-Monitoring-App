@@ -1,5 +1,5 @@
 /* 
-* Title: Sample Hnadler Module 
+* Title: Sample Handler Module 
 * Description: Handling req and give response on sample route 
 * Name: Prithwijit Banerjee
 * Date: 28/05/2024

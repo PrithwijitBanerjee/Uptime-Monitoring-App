@@ -9,7 +9,7 @@
 const handler = {};
 
 
-handler.notFoundHnadler = (requestedProperties, callback) => {
+handler.notFoundHandler = (requestedProperties, callback) => {
     callback(404, {
         message: 'This is not found route page (404)'
     });

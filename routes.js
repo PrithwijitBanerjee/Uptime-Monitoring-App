@@ -7,6 +7,7 @@
 
 // Dependencies ...
 const { sampleHandler } = require('./handlers/routeHandlers/sampleHandler');
+const { userHandler } = require('./handlers/routeHandlers/userHandler');
 
 // Routes object -- module scaffolding 
 const routes = {};
@@ -15,6 +16,7 @@ const routes = {};
 
 routes.allRoutes = {
     'sample': sampleHandler,
+    'user': userHandler
 };
 
 // Exporting the module ...

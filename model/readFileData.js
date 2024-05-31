@@ -17,7 +17,11 @@ const lib = {};
 // Reading data from the existing corresponding file ...
 lib.read = (file, dir, callback) => {
     fs.readFile(baseCommonDir.baseDirPath + dir + '/' + file + '.json', 'utf-8', (error, data) => {
-        callback(error, JSON.parse(data));
+        if (!error) {
+            callback(error, data);
+        } else {
+            callback(error, data);
+        }
     });
 }
 
