@@ -34,5 +34,21 @@ utilities.hash = password => {
     }
 }
 
+// generates random token id based on given string length ...
+utilities.generateRandomToken = strLen => {
+    let len = typeof (strLen) === 'number' && strLen > 0 ? strLen : false;
+    console.log('len: ', len);
+    if (len) {
+        const possibleCharacters = 'abcdefghijklmnopqrstwxyzABCDEFGHIJKLMNOPQRSTWXYZ0123456789$#!*&';
+        let output = "";
+        for (let i = 0; i < len; i++) {
+            output += possibleCharacters.charAt(Math.floor(Math.random() * strLen));
+        }
+        return output;
+    } else {
+        return false;
+    }
+}
+
 // Exporting the module ...
 module.exports = utilities;

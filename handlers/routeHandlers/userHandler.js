@@ -11,6 +11,7 @@ const { hash, parseJSON } = require('../../helpers/utilities');
 const { create } = require('../../model/createFileData');
 const { update } = require("../../model/updateFileData");
 const { deleteFile } = require('../../model/deleteFileData');
+const tokenHandler = require('./tokenHandler');
 // Handler object -- module scaffolding 
 const handler = {};
 
@@ -34,26 +35,38 @@ handler._user.get = (requestedProperties, callback) => {
     const u_id = typeof (requestedProperties.queryStrObj.id) === 'string' && requestedProperties.queryStrObj.id.length === 10 ? requestedProperties.queryStrObj.id : false;
 
     if (u_id) {
-        // fetch user details from db based on above user_id ...
-        read(u_id, 'Users', (error, data) => {
-            const user = { ...parseJSON(data) }; // shallow copy for first level not deeply nested ...
+        // get token from header ...
+        const token = typeof (requestedProperties.headersObj.token) === 'string' ? requestedProperties.headersObj.token : false;
 
-            //delete user password ...
-            delete user.password;
-            if (!error && user) {
-                // user present in db ...
-                callback(200, {
-                    status: true,
-                    user
-                });
+        // verify token ...
+        tokenHandler._token.verifyToken(token, u_id, (access) => {
+            if (access) {
+                // fetch user details from db based on above user_id ...
+                read(u_id, 'Users', (error, data) => {
+                    const user = { ...parseJSON(data) }; // shallow copy for first level not deeply nested ...
+
+                    //delete user password ...
+                    delete user.password;
+                    if (!error && user) {
+                        // user present in db ...
+                        callback(200, {
+                            status: true,
+                            user
+                        });
+                    } else {
+                        // user does not exists ...
+                        callback(404, {
+                            status: false,
+                            error: 'User does not exists of given id!!!'
+                        });
+                    }
+                })
             } else {
-                // user does not exists ...
-                callback(404, {
-                    status: false,
-                    error: 'User does not exists of given id!!!'
+                callback(403, {
+                    error: 'Authentication Failed !!!'
                 });
             }
-        })
+        });
     } else {
         // user does not exists ...
         callback(404, {
@@ -130,40 +143,52 @@ handler._user.put = (requestedProperties, callback) => {
         const updatedPassword = typeof (requestedProperties.body.password) === 'string' && requestedProperties.body.password.trim().length > 8 || requestedProperties.body.password.trim().length <= 10 ? requestedProperties.body.password : null;
 
         if (updatedFirstName || updatedLastName || updatedPassword) {
-            // check whether the user exists in db or not ...
-            read(phoneNo, 'Users', (error, data) => {
-                const usrData = Object.assign({}, parseJSON(data)); // perform shallow copy ...
-                if (!error && usrData) {
-                    // user of corresponding phone number exists ...
+            // get token from header ...
+            const token = typeof (requestedProperties.headersObj.token) === 'string' ? requestedProperties.headersObj.token : false;
 
-                    if (updatedFirstName) {
-                        usrData.firstName = updatedFirstName;
-                    }
-                    if (updatedLastName) {
-                        usrData.lastName = updatedLastName;
-                    }
-                    if (updatedPassword) {
-                        usrData.password = hash(updatedPassword);
-                    }
+            //verify token ...
+            tokenHandler._token.verifyToken(token, phoneNo, (verify) => {
+                if (verify) {
+                    // check whether the user exists in db or not ...
+                    read(phoneNo, 'Users', (error, data) => {
+                        const usrData = Object.assign({}, parseJSON(data)); // perform shallow copy ...
+                        if (!error && usrData) {
+                            // user of corresponding phone number exists ...
 
-                    // update user details in the db ...
-                    update(phoneNo, 'Users', usrData, (error) => {
-                        if (!error) {
-                            callback(400, {
-                                update: true,
-                                message: 'user updates successfully!!!'
+                            if (updatedFirstName) {
+                                usrData.firstName = updatedFirstName;
+                            }
+                            if (updatedLastName) {
+                                usrData.lastName = updatedLastName;
+                            }
+                            if (updatedPassword) {
+                                usrData.password = hash(updatedPassword);
+                            }
+
+                            // update user details in the db ...
+                            update(phoneNo, 'Users', usrData, (error) => {
+                                if (!error) {
+                                    callback(400, {
+                                        update: true,
+                                        message: 'user updates successfully!!!'
+                                    });
+                                } else {
+                                    callback(500, {
+                                        update: false,
+                                        error: 'Internal Server Error, Something went wrong in server!!!'
+                                    });
+                                }
                             });
                         } else {
-                            callback(500, {
+                            callback(404, {
                                 update: false,
-                                error: 'Internal Server Error, Something went wrong in server!!!'
+                                error: 'can not update, user of given phone number does not exists!!!'
                             });
                         }
-                    });
+                    })
                 } else {
-                    callback(404, {
-                        update: false,
-                        error: 'can not update, user of given phone number does not exists!!!'
+                    callback(403, {
+                        error: 'Can not update user, Authentication Failed !!!'
                     });
                 }
             })
@@ -186,29 +211,41 @@ handler._user.delete = (requestedProperties, callback) => {
     const u_id = typeof (requestedProperties.queryStrObj.id) === 'string' && requestedProperties.queryStrObj.id.length === 10 ? requestedProperties.queryStrObj.id : false;
 
     if (u_id) {
-        // checks whether the user exists in db or not for delete ...
-        read(u_id, 'Users', (error, data) => {
-            if (!error && data) {
-                // users exists and delete user from db ...
-                deleteFile(u_id, 'Users', (error1) => {
-                    if (!error1) {
-                        callback(200, {
-                            delete: true,
-                            message: "User of given phone number has been deleted successfully!!!"
+        // get token from header ...
+        const token = typeof (requestedProperties.headersObj.token) === 'string' ? requestedProperties.headersObj.token : false;
+
+        // verify token ...
+        tokenHandler._token.verifyToken(token, u_id, (verify) => {
+            if (verify) {
+                // checks whether the user exists in db or not for delete ...
+                read(u_id, 'Users', (error, data) => {
+                    if (!error && data) {
+                        // users exists and delete user from db ...
+                        deleteFile(u_id, 'Users', (error1) => {
+                            if (!error1) {
+                                callback(200, {
+                                    delete: true,
+                                    message: "User of given phone number has been deleted successfully!!!"
+                                })
+                            } else {
+                                callback(500, {
+                                    delete: false,
+                                    error: 'Internal Server Error, Something Went Wrong in Server!!!'
+                                });
+                            }
                         })
+
                     } else {
-                        callback(500, {
+                        // user does not exists ...
+                        callback(404, {
                             delete: false,
-                            error: 'Internal Server Error, Something Went Wrong in Server!!!'
+                            error: 'Can not delete, Given user phone number does not exists'
                         });
                     }
                 })
-
             } else {
-                // user does not exists ...
-                callback(404, {
-                    delete: false,
-                    error: 'Can not delete, Given user phone number does not exists'
+                callback(403, {
+                    error: 'Can not delete user, Authentication failed !!!'
                 });
             }
         })
