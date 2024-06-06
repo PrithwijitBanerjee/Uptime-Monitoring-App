@@ -37,7 +37,6 @@ utilities.hash = password => {
 // generates random token id based on given string length ...
 utilities.generateRandomToken = strLen => {
     let len = typeof (strLen) === 'number' && strLen > 0 ? strLen : false;
-    console.log('len: ', len);
     if (len) {
         const possibleCharacters = 'abcdefghijklmnopqrstwxyzABCDEFGHIJKLMNOPQRSTWXYZ0123456789$#!*&';
         let output = "";
